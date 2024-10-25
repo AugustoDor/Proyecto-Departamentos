@@ -8,23 +8,8 @@ import numpy as np
 directorio_actual = os.getcwd()
 
 # Cargar los datos
-ruta_dolar = os.path.join(directorio_actual, 'dataframes', 'cotizacion_dolar_hoy.csv')
 ruta_deptos = os.path.join(directorio_actual, 'dataframes', 'venta_deptos.csv')
-df_dolar = pd.read_csv(ruta_dolar, encoding='utf-8')
 df_deptos = pd.read_csv(ruta_deptos, encoding='utf-8')
-
-# Limpieza datos del dolar
-df_dolar['tipo_dolar'] = df_dolar['tipo_dolar'].apply(lambda x: unidecode(x).replace(' ', '_').lower())
-df_dolar['valor_compra'] = df_dolar['valor_compra'].str.replace('$', '').astype(float)
-df_dolar['valor_venta'] = df_dolar['valor_venta'].str.replace('$', '').astype(float)
-
-# Verificar si existen valores infinitos o NaN en el DataFrame de dólar
-df_dolar.replace([np.inf, -np.inf], np.nan, inplace=True)
-df_dolar.dropna(inplace=True)
-
-# Guardar archivo limpio de cotización de dólar
-ruta_nueva_dolar = os.path.join(directorio_actual, 'dataframes', 'cotizacion_dolar_hoy_limpio.csv')
-df_dolar.to_csv(path_or_buf=ruta_nueva_dolar, index=False)
 
 # Limpieza datos deptos
 df_deptos.dropna(inplace=True)
@@ -68,17 +53,18 @@ def extraer_numeros(caracteristicas):
         elif 'Coch' in elem:
             cocheras_match = re.search(r'(\d+)', elem)
             cocheras = int(cocheras_match.group(1)) if cocheras_match else None
-
     return metros_totales, metros_cubiertos, ambientes, banios, dormitorios, cocheras
 
-df_deptos['caracteristicas'] = df_deptos['caracteristicas'].apply(lambda x: x.replace(r'\n', ' ').replace('.', '').replace("'", '').replace("[", '').replace("]", '').title().replace(' ', '-').split(',-'))
+df_deptos['caracteristicas'] = df_deptos['caracteristicas'].apply(lambda x: x.replace(r'\n', ' ').replace(r'\t', ' ').replace('.', '').replace("'", '').replace("[", '').replace("]", '').title().replace(' ', '-').split(',-'))
 df_deptos['metros_totales'], df_deptos['metros_cubiertos'], df_deptos['ambientes'], df_deptos['banios'], df_deptos['dormitorios'], df_deptos['cocheras'] = zip(*df_deptos['caracteristicas'].apply(extraer_numeros))
 
 # Verificar y reemplazar valores infinitos o NaN
 df_deptos.replace([np.inf, -np.inf], np.nan, inplace=True)
-df_deptos.dropna(inplace=True)
-
+df_deptos.fillna(0, inplace=True)
 df_deptos.drop(columns=['caracteristicas'], inplace=True)
+
+#En caso de ser necesario a futuro se puedren dropear las filas que no posean altura a la cual se encuentra el depto.
+#df_deptos = df_deptos[df_deptos['altura'] != 0]
 
 # Guardar archivo limpio de departamentos
 ruta_nueva_deptos = os.path.join(directorio_actual, 'dataframes', 'venta_deptos_limpio.csv')

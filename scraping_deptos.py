@@ -17,8 +17,8 @@ def obtener_valores_depto():
     busqueda = busqueda.replace(' ', '-')
     x = 1
     urls = []
-    #puse para leer solo 2 paginas, serian unas 30 publcaciones, si quieres todas las que haya tienes que poenr while True
-    while x < 3:
+    #puse para leer solo 2 paginas, serian unas 30 publcaciones, si quieres todas las que haya tienes que poner while True
+    while x < 12:
         url = f'https://www.zonaprop.com.ar/departamentos-venta-{busqueda}-pagina-{x}.html'
         browser.get(url)
         time.sleep(random.randint(10, 12))
@@ -28,11 +28,7 @@ def obtener_valores_depto():
             pass
         html = browser.page_source
         soup = bs(html, 'lxml')
-        pagina_actual = int(soup.find('div', {'class': 'sc-n5babu-0 eiXYkA'}).find('a', {'class': 'sc-n5babu-1 llkTcd'}).text)
-        if x == pagina_actual:
-            articulos = soup.find('div', {'class': 'postings-container'}).find_all('div', {'data-qa': 'posting PROPERTY'})
-        else:
-            break
+        articulos = soup.find('div', {'class': 'postings-container'}).find_all('div', {'data-qa': 'posting PROPERTY'})
         x += 1
         for articulo in articulos:
             url_deptos = articulo.get('data-to-posting')
@@ -82,3 +78,6 @@ def obtener_valores_depto():
     df_final.to_csv(path_or_buf=ruta_deptos, index=False)
     # Retornar el DataFrame final
     return print('Todo salio bien')
+
+
+obtener_valores_depto()
